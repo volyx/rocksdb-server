@@ -8,7 +8,6 @@ import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.eclipse.jetty.server.Server;
 import org.rocksdb.RocksDB;
 
 /**
@@ -46,17 +45,17 @@ public class Main {
 
             // Create Server
             InetSocketAddress addr = new InetSocketAddress(Configs.listen, Configs.port);
-            Server server = new Server(addr);
-            server.setHandler(new HttpHandler(databases));
+            Server server = new Server(Configs.port);
+            server.setHandler(new WorkerHandler(databases));
 
-            try {
-                server.start();
+//            try {
+                server.run();
                 logger.info("Server started.");
-                server.join();
-            } catch (BindException e) {
-                logger.error("Failed to bind at " + addr + ": " + e.getMessage());
-                System.exit(-1);
-            }
+                Thread.currentThread().join();
+//            } catch (BindException e) {
+//                logger.error("Failed to bind at " + addr + ": " + e.getMessage());
+//                System.exit(-1);
+//            }
         }
     }
 }

@@ -8,13 +8,14 @@
 	<packaging>jar</packaging>
 
 	<name>rocksdb-server</name>
-	<url>https://github.com/ywu123/rocksdb-server</url>
+	<url>https://github.com/volyx/rocksdb-server</url>
 
 	<dependencies>
+
 		<dependency>
-			<groupId>org.eclipse.jetty</groupId>
-			<artifactId>jetty-server</artifactId>
-			<version>9.3.11.v20160721</version>
+			<groupId>io.netty</groupId>
+			<artifactId>netty-all</artifactId>
+			<version>4.1.16.Final</version>
 		</dependency>
 
 		<dependency>
