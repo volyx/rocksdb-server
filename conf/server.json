@@ -3,7 +3,7 @@
 	"port": 8516,
 
 	"auth": {
-		"enabled": true,
+		"enabled": false,
 		"username": "username",
 		"password": "password"
 	},

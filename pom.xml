@@ -19,6 +19,12 @@
 		</dependency>
 
 		<dependency>
+			<groupId>tv.cntt</groupId>
+			<artifactId>netty-router</artifactId>
+			<version>2.2.0</version>
+		</dependency>
+
+		<dependency>
 			<groupId>org.rocksdb</groupId>
 			<artifactId>rocksdbjni</artifactId>
 			<version>4.9.0</version>

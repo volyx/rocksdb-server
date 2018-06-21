@@ -14,18 +14,6 @@ import java.nio.charset.StandardCharsets;
 
 
 public class Server implements Runnable {
-	// ключи, используемые для передачи параметров между хендлерами
-	public static final AttributeKey<String> KEY_OPERATION = AttributeKey.valueOf("requested-operaion");
-	public static final AttributeKey<Long> KEY_ACCOUNT_ID = AttributeKey.valueOf("account-id");
-	public static final AttributeKey<Long> KEY_DESTINATION_ID = AttributeKey.valueOf("destination-id");
-	public static final AttributeKey<Long> KEY_AMOUNT = AttributeKey.valueOf("amount");
-
-	// коды операций, передаются в KEY_OPERATION и, по совместительству, являются названиями ресурсов,
-	// обращение к которым, вызывают соответствующую операцию
-	public static final String OPER_BALANCE = "balance";
-	public static final String OPER_DEPOSIT = "deposit";
-	public static final String OPER_TRANSFER = "transfer";
-	public static final String OPER_WITHDRAW = "withdraw";
 
 	private final int port;
 	private WorkerHandler workerHandler;
@@ -67,12 +55,6 @@ public class Server implements Runnable {
 				channelFuture.channel().close().awaitUninterruptibly();
 		}
 	}
-
-	/**
-	 * Генерирует и отправляет ответ с кодом ошибки status и сообщением errorMessage
-	 * @param errorMessage сообение об ошибке, будет в теле ответа
-	 * @param status код ошибки
-	 */
 	public static void sendError(ChannelHandlerContext ctx, String errorMessage, HttpResponseStatus status) {
 		final ByteBuf content = Unpooled.copiedBuffer(errorMessage, StandardCharsets.UTF_8);
 		final FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status, content);
