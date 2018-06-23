@@ -45,13 +45,8 @@ public class WorkerHandler extends ChannelInboundHandlerAdapter {
 		Response resp = null;
 
 
-		try {
-			// parse request
-			ByteArrayOutputStream buf = new ByteArrayOutputStream();
-			ByteArrayInputStream in = new ByteArrayInputStream(request.content().array());
-			for (int c; (c = in.read()) != -1;) {
-				buf.write(c);
-			}
+		try (ByteArrayOutputStream buf = new ByteArrayOutputStream()) {
+			request.content().readBytes(buf, request.content().readableBytes());
 			JSONObject req = new JSONObject(buf.size() > 0 ? buf.toString(StandardCharsets.UTF_8.name()) : "{}");
 			;
 			// authorization (Basic Auth prioritizes)
@@ -67,7 +62,7 @@ public class WorkerHandler extends ChannelInboundHandlerAdapter {
 
 
 			response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.INTERNAL_SERVER_ERROR, INTERNAL_ERROR);
-			logger.error("Internal error: " + e.getMessage());
+			logger.error("Internal error: " + e.getMessage(), e);
 		}
 
 		response.headers().set("ContentType", "application/json; charset=utf-8");

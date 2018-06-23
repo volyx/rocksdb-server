@@ -1,5 +1,6 @@
 package com.ranksays.rocksdb.server;
 
+import com.ranksays.rocksdb.server.handlers.GetHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -9,14 +10,19 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.*;
 import io.netty.util.AttributeKey;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.nio.charset.StandardCharsets;
 
 
 public class Server implements Runnable {
 
+	private static final Logger logger = LogManager.getLogger(Server.class);
+
 	private final int port;
 	private WorkerHandler workerHandler;
+	private ChannelFuture sync;
 
 	public Server(int port) {
 		this.port = port;
@@ -25,7 +31,6 @@ public class Server implements Runnable {
 	public void run() {
 		final EventLoopGroup workerGroup = new NioEventLoopGroup();
 		final EventLoopGroup bossGroup = new NioEventLoopGroup(1);
-		ChannelFuture channelFuture = null;
 		try {
 			final ServerBootstrap server = new ServerBootstrap()
 					.group(bossGroup, workerGroup)
@@ -38,24 +43,29 @@ public class Server implements Runnable {
 									.addLast(new HttpResponseEncoder())
 									.addLast(new HttpRequestDecoder())
 									.addLast(new HttpObjectAggregator(Integer.MAX_VALUE))
-									.addLast(new RequestFilterHandler()) // извлекаем данные из запроса, проверяем
-									.addLast(workerHandler); // производим операцию
+									.addLast(new RequestFilterHandler())
+									.addLast(workerHandler);
 						}
 					})
 					.option(ChannelOption.SO_BACKLOG, 500)
+//					.option(ChannelOption.SO_TIMEOUT, 2_000)
+					.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 2_000)
 					.childOption(ChannelOption.SO_KEEPALIVE, true);
 
-			channelFuture = server.bind("localhost", port).sync();
-			channelFuture.channel().closeFuture().sync();
+			sync = server.bind("localhost", port).sync();
+			sync.channel().closeFuture().sync();
 		} catch (InterruptedException e) {
-			e.printStackTrace();
+			logger.info(e.getMessage(), e);
 		} finally {
+			logger.info("shutdownGracefully");
+			if (sync != null)
+				sync.channel().close().awaitUninterruptibly();
 			workerGroup.shutdownGracefully();
-			if (channelFuture != null)
-				channelFuture.channel().close().awaitUninterruptibly();
+			bossGroup.shutdownGracefully();
 		}
 	}
-	public static void sendError(ChannelHandlerContext ctx, String errorMessage, HttpResponseStatus status) {
+
+	static void sendError(ChannelHandlerContext ctx, String errorMessage, HttpResponseStatus status) {
 		final ByteBuf content = Unpooled.copiedBuffer(errorMessage, StandardCharsets.UTF_8);
 		final FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status, content);
 

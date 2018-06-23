@@ -24,6 +24,7 @@ public class Main {
     private static final Logger logger = LogManager.getLogger(Main.class);
 
     private static Map<String, RocksDB> databases = new HashMap<>();
+    public static boolean started = false;
 
     public static void main(String[] args) throws Exception {
 
@@ -52,27 +53,13 @@ public class Main {
             RocksDbWrapper rocksDbWrapper = new RocksDbWrapper(databases);
 
             Router<Function<JSONObject, Response>> router = new Router<Function<JSONObject, Response>>()
-                    .GET("/get", new GetHandler(rocksDbWrapper))
-                    .GET("/put", new PutHandler(rocksDbWrapper))
-                    .GET("/remove", new RemoveHandler(rocksDbWrapper))
-                    .GET("/drop_database", new DropDatabaseHandler(rocksDbWrapper))
+                    .POST("/get", new GetHandler(rocksDbWrapper))
+                    .POST("/put", new PutHandler(rocksDbWrapper))
+                    .POST("/remove", new RemoveHandler(rocksDbWrapper))
+                    .POST("/drop_database", new DropDatabaseHandler(rocksDbWrapper))
 					.ANY("/", jsonObject -> new Response("This rocksdb-server is working"))
 
 					;
-
-//			if ("/get".equals(target)) {
-//				resp = doGet(req);
-//			} else if ("/put".equals(target)) {
-//				resp = doPut(req);
-//			} else if ("/remove".equals(target)) {
-//				resp = doRemove(req);
-//			} else if ("/drop_database".equals(target)) {
-//				resp = doDropDatabase(req);
-//			} else if ("/".equals(target)) {
-//				resp = new Response("This rocksdb-server is working");
-//			} else {
-//				resp = new Response(404, "Sorry, that page does not exist");
-//			}
 
             System.out.println(router);
 
@@ -83,6 +70,7 @@ public class Main {
 
 //            try {
                 server.run();
+                Main.started = true;
                 logger.info("Server started.");
                 Thread.currentThread().join();
 //            } catch (BindException e) {
